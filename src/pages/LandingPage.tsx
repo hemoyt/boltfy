@@ -43,9 +43,6 @@ const FadeIn = ({ children, delay = 0, className = "" }: { children: React.React
 );
 
 export default function LandingPage() {
-    // Pricing state
-    const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("annual");
-
     // Interactive Demo state
     const [activeDemoTab, setActiveDemoTab] = useState<"build" | "preview" | "analytics">("preview");
     const [demoFields, setDemoFields] = useState<string[]>(["Email Address", "Product Rating", "Written Review"]);
@@ -734,107 +731,48 @@ export default function LandingPage() {
                 <section id="pricing" className="py-20 px-6 bg-background relative mb-24">
                     <div className="max-w-6xl mx-auto">
                         <FadeIn className="text-center mb-12">
-                            <span className="text-xs font-bold uppercase tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-full">Simple Pricing</span>
-                            <h2 className="text-3xl md:text-5xl font-bold tracking-tight mt-4 mb-4">Plans that grow with you</h2>
+                            <span className="text-xs font-bold uppercase tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-full">Pricing</span>
+                            <h2 className="text-3xl md:text-5xl font-bold tracking-tight mt-4 mb-4">Free Forever Plan</h2>
                             <p className="text-lg text-muted-foreground max-w-2xl mx-auto font-light">
-                                Choose the perfect tier. Start building risk-free today.
+                                Boltfy is entirely free. All features unlocked, no credit card required.
                             </p>
-
-                            {/* Monthly/Annual Switcher (CRO Feature) */}
-                            <div className="mt-10 flex items-center justify-center gap-4">
-                                <span className={`text-sm font-medium ${billingPeriod === "monthly" ? "text-foreground" : "text-muted-foreground"}`}>Monthly Billing</span>
-                                <button
-                                    onClick={() => setBillingPeriod(billingPeriod === "monthly" ? "annual" : "monthly")}
-                                    className="relative w-12 h-6 rounded-full bg-primary/20 dark:bg-primary/10 border border-primary/30 p-1 flex items-center cursor-pointer transition-colors"
-                                    aria-label="Toggle billing duration"
-                                >
-                                    <div 
-                                        className={`w-4.5 h-4.5 rounded-full bg-primary transition-all duration-300 shadow-sm ${
-                                            billingPeriod === "annual" ? "translate-x-6" : "translate-x-0"
-                                        }`} 
-                                    />
-                                </button>
-                                <div className="flex items-center gap-2">
-                                    <span className={`text-sm font-medium ${billingPeriod === "annual" ? "text-foreground" : "text-muted-foreground"}`}>Annual Billing</span>
-                                    <span className="text-[10px] font-bold bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">Save 20%</span>
-                                </div>
-                            </div>
                         </FadeIn>
 
-                        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                            {/* Free Tier */}
+                        <div className="max-w-2xl mx-auto">
                             <FadeIn delay={0.1}>
-                                <div className="p-8 md:p-10 rounded-3xl border border-border/80 dark:border-border/30 bg-card hover:border-primary/20 transition-all flex flex-col justify-between h-full shadow-sm relative">
+                                <div className="p-8 md:p-10 rounded-3xl border-2 border-primary bg-card dark:bg-card/90 transition-all flex flex-col justify-between h-full shadow-lg relative overflow-hidden">
+                                    <div className="absolute top-4 right-4 bg-gradient-to-r from-primary to-indigo-600 text-primary-foreground text-[10px] font-extrabold px-3 py-1 rounded-full shadow-md tracking-wider">
+                                        FREE FOREVER
+                                    </div>
                                     <div>
-                                        <h3 className="text-2xl font-bold text-foreground mb-2">Free Plan</h3>
-                                        <p className="text-muted-foreground text-xs font-light mb-6">Perfect for creators getting started with forms.</p>
+                                        <h3 className="text-3xl font-extrabold text-foreground mb-2">Complete Access</h3>
+                                        <p className="text-muted-foreground text-sm font-light mb-6">Get everything you need to build visual forms and collect responses.</p>
                                         <div className="flex items-baseline mb-6">
-                                            <span className="text-5xl font-extrabold text-foreground">$0</span>
-                                            <span className="text-muted-foreground text-sm ml-2">/ month</span>
+                                            <span className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-500 dark:from-primary dark:to-indigo-400">$0</span>
+                                            <span className="text-muted-foreground text-sm ml-2">/ forever</span>
                                         </div>
-                                        <ul className="space-y-4 border-t border-border/50 pt-6">
+                                        <ul className="grid sm:grid-cols-2 gap-4 border-t border-border/50 pt-6">
                                             {[
                                                 "Unlimited active forms",
-                                                "Up to 100 submissions/month",
-                                                "Basic drag & drop editor",
-                                                "Standard templates library",
-                                                "CSV response exports"
+                                                "Unlimited responses",
+                                                "Premium visual builder",
+                                                "Full templates library",
+                                                "Supabase & webhook hooks",
+                                                "Custom domains + SSL",
+                                                "CSV & JSON data exports",
+                                                "Priority email support"
                                             ].map((feature, idx) => (
-                                                <li key={idx} className="flex items-center gap-3 text-sm text-muted-foreground font-light">
+                                                <li key={idx} className="flex items-center gap-3 text-sm text-muted-foreground font-light font-sans">
                                                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                                                     {feature}
                                                 </li>
                                             ))}
                                         </ul>
                                     </div>
-                                    <div className="pt-8">
+                                    <div className="pt-10">
                                         <Link to="/signup" className="w-full block">
-                                            <Button variant="outline" className="w-full h-12 rounded-full font-semibold border-border/80">
-                                                Start for Free
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                </div>
-                            </FadeIn>
-
-                            {/* Pro Tier */}
-                            <FadeIn delay={0.2}>
-                                <div className="p-8 md:p-10 rounded-3xl border-2 border-primary bg-card dark:bg-card/90 transition-all flex flex-col justify-between h-full shadow-lg relative overflow-hidden">
-                                    <div className="absolute top-4 right-4 bg-gradient-to-r from-primary to-indigo-600 text-primary-foreground text-[10px] font-extrabold px-3 py-1 rounded-full shadow-md tracking-wider">
-                                        POPULAR
-                                    </div>
-                                    <div>
-                                        <h3 className="text-2xl font-bold text-foreground mb-2">Pro Plan</h3>
-                                        <p className="text-muted-foreground text-xs font-light mb-6">For professional creators, teams, and high-growth sites.</p>
-                                        <div className="flex items-baseline mb-6">
-                                            <span className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-500 dark:from-primary dark:to-indigo-400">
-                                                {billingPeriod === "annual" ? "$15" : "$19"}
-                                            </span>
-                                            <span className="text-muted-foreground text-sm ml-2">/ month</span>
-                                        </div>
-                                        <p className="text-[10px] text-muted-foreground mb-4">
-                                            {billingPeriod === "annual" ? "Billed $180 annually (Save $48)" : "Billed monthly"}
-                                        </p>
-                                        <ul className="space-y-4 border-t border-border/50 pt-6">
-                                            {[
-                                                "Everything in Free Plan",
-                                                "Unlimited submissions",
-                                                "Custom domain support",
-                                                "Advanced logic & branching",
-                                                "Webhook & API integrations",
-                                                "Priority email & chat support"
-                                            ].map((feature, idx) => (
-                                                <li key={idx} className="flex items-center gap-3 text-sm text-muted-foreground font-light">
-                                                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                                                    {feature}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                    <div className="pt-8">
-                                        <Link to="/signup" className="w-full block">
-                                            <Button className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold shadow-md shadow-primary/20">
-                                                Go Pro Now
+                                            <Button className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold shadow-md shadow-primary/20 text-md">
+                                                Create Your Free Account
                                             </Button>
                                         </Link>
                                     </div>
@@ -867,28 +805,28 @@ export default function LandingPage() {
 
                             <AccordionItem value="item-2" className="border-b border-border/40">
                                 <AccordionTrigger className="text-left font-semibold py-4 hover:no-underline hover:text-primary transition-colors text-sm md:text-base">
-                                    How does the free tier limit work?
+                                    Is it really free forever?
                                 </AccordionTrigger>
                                 <AccordionContent className="text-muted-foreground text-sm font-light leading-relaxed">
-                                    Our free tier allows you to create unlimited forms and collect up to 100 responses each month. If your usage exceeds this limit, we'll notify you. You can easily export responses in CSV formats or upgrade to Pro to unlock unlimited submissions.
+                                    Yes, Boltfy is completely free. You can create unlimited forms and collect unlimited responses. There are no pricing tiers, trials, limits, or hidden fees.
                                 </AccordionContent>
                             </AccordionItem>
 
                             <AccordionItem value="item-3" className="border-b border-border/40">
                                 <AccordionTrigger className="text-left font-semibold py-4 hover:no-underline hover:text-primary transition-colors text-sm md:text-base">
-                                    What integrations are available on Pro?
+                                    Are integrations and webhooks free?
                                 </AccordionTrigger>
                                 <AccordionContent className="text-muted-foreground text-sm font-light leading-relaxed">
-                                    With our Pro plan, you can connect forms to Supabase, custom webhooks, Resend for email automations, and HubSpot. Submissions will trigger events in these platforms instantly, allowing you to build clean automated flows.
+                                    Yes. Connecting your forms to Supabase database pools, forwarding events to custom webhooks, and using Resend for mail automation are fully supported at no cost.
                                 </AccordionContent>
                             </AccordionItem>
 
                             <AccordionItem value="item-4" className="border-b border-border/40">
                                 <AccordionTrigger className="text-left font-semibold py-4 hover:no-underline hover:text-primary transition-colors text-sm md:text-base">
-                                    Can I attach custom domains to my public forms?
+                                    Can I connect a custom domain for free?
                                 </AccordionTrigger>
                                 <AccordionContent className="text-muted-foreground text-sm font-light leading-relaxed">
-                                    Yes. Pro users can specify custom subdomains or root domains in their settings panel. We provide automated SSL certificates, serving forms securely directly from your own domain.
+                                    Yes, you can map your custom subdomains or root domains in your settings. Boltfy handles automated secure SSL certification for all domains free of charge.
                                 </AccordionContent>
                             </AccordionItem>
 
