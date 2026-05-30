@@ -357,6 +357,7 @@ export default function LandingPage() {
                             </FadeIn>
                         </div>
                     </div>
+                </section>
 
                 {/* FINAL CTA */}
                 <section className="py-32 px-6">
