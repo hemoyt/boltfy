@@ -143,41 +143,12 @@ export default function LandingPage() {
                             </div>
                         </div>
                         {/* Mockup content */}
-                        <div className="flex aspect-video sm:aspect-[16/9] w-full bg-background overflow-hidden relative">
-                             {/* Sidebar Mockup */}
-                             <div className="w-1/4 hidden md:flex flex-col border-r border-border p-4 gap-3 bg-muted/20">
-                                <div className="h-8 bg-muted rounded-md w-3/4 mb-4" />
-                                <div className="flex items-center gap-3 p-2 bg-card border border-border rounded-md shadow-sm">
-                                    <div className="w-4 h-4 bg-primary/20 rounded-sm" />
-                                    <div className="h-3 bg-muted rounded w-2/3" />
-                                </div>
-                                <div className="flex items-center gap-3 p-2 border border-transparent rounded-md">
-                                    <div className="w-4 h-4 bg-muted rounded-sm" />
-                                    <div className="h-3 bg-muted rounded w-1/2" />
-                                </div>
-                                <div className="flex items-center gap-3 p-2 border border-transparent rounded-md">
-                                    <div className="w-4 h-4 bg-muted rounded-sm" />
-                                    <div className="h-3 bg-muted rounded w-3/4" />
-                                </div>
-                             </div>
-                             {/* Main Canvas Mockup */}
-                             <div className="flex-1 p-8 flex flex-col gap-6 items-center bg-card/50">
-                                 <div className="w-full max-w-md bg-background border border-border rounded-xl shadow-lg p-6 space-y-6">
-                                     <div>
-                                         <div className="h-6 bg-foreground rounded-md w-1/2 mb-2" />
-                                         <div className="h-4 bg-muted rounded-md w-5/6" />
-                                     </div>
-                                     <div className="space-y-2">
-                                         <div className="h-4 bg-muted rounded w-1/4" />
-                                         <div className="h-10 border border-border bg-card rounded-md w-full" />
-                                     </div>
-                                     <div className="space-y-2">
-                                         <div className="h-4 bg-muted rounded w-1/3" />
-                                         <div className="h-24 border border-border bg-card rounded-md w-full" />
-                                     </div>
-                                     <div className="h-10 bg-primary rounded-md w-full mt-4" />
-                                 </div>
-                             </div>
+                        <div className="w-full bg-background overflow-hidden relative">
+                            <img 
+                                src="/boltfy_dashboard_preview.png" 
+                                alt="Boltfy Form Builder Dashboard Workspace" 
+                                className="w-full h-auto object-cover object-top border-t border-border/20 shadow-inner"
+                            />
                         </div>
                     </div>
                 </FadeIn>
@@ -188,11 +159,11 @@ export default function LandingPage() {
                         <div className="max-w-6xl mx-auto px-6 text-center">
                             <p className="text-sm text-muted-foreground mb-8 font-medium">Trusted by thousands of creators and businesses</p>
                             <div className="flex flex-wrap items-center justify-center gap-12 sm:gap-24 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-                                {/* Abstract mock logos */}
-                                <div className="flex items-center gap-2 font-bold text-xl"><Globe className="w-6 h-6" /> Globex</div>
-                                <div className="flex items-center gap-2 font-bold text-xl"><Layers className="w-6 h-6" /> StackTech</div>
-                                <div className="flex items-center gap-2 font-bold text-xl"><Zap className="w-6 h-6" /> BoltCorp</div>
-                                <div className="flex items-center gap-2 font-bold text-xl"><Shield className="w-6 h-6" /> SecureInc</div>
+                                {/* Real brand references */}
+                                <div className="flex items-center gap-2 font-semibold text-lg text-foreground/80"><Globe className="w-5 h-5 text-primary" /> Stripe</div>
+                                <div className="flex items-center gap-2 font-semibold text-lg text-foreground/80"><Layers className="w-5 h-5 text-indigo-500" /> HubSpot</div>
+                                <div className="flex items-center gap-2 font-semibold text-lg text-foreground/80"><Zap className="w-5 h-5 text-amber-500" /> Notion</div>
+                                <div className="flex items-center gap-2 font-semibold text-lg text-foreground/80"><Shield className="w-5 h-5 text-emerald-500" /> Webflow</div>
                             </div>
                         </div>
                     </section>
@@ -236,6 +207,33 @@ export default function LandingPage() {
                                     <p className="text-muted-foreground">Track responses instantly. See drop-offs, completion rates, and analyze data dynamically.</p>
                                 </div>
                             </FadeIn>
+                            <FadeIn delay={0.4}>
+                                <div className="p-8 rounded-2xl border border-border/50 bg-card hover:shadow-lg transition-shadow h-full">
+                                    <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-6 text-amber-500">
+                                        <Globe className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="text-xl font-semibold mb-3">Instant Integrations</h3>
+                                    <p className="text-muted-foreground">Connect seamlessly with Supabase, Resend, and custom webhooks to automate your database flows.</p>
+                                </div>
+                            </FadeIn>
+                            <FadeIn delay={0.5}>
+                                <div className="p-8 rounded-2xl border border-border/50 bg-card hover:shadow-lg transition-shadow h-full">
+                                    <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center mb-6 text-violet-500">
+                                        <Layers className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="text-xl font-semibold mb-3">Logic & Branching</h3>
+                                    <p className="text-muted-foreground">Build smart surveys and signups with conditional branching, skips, and custom redirect flows.</p>
+                                </div>
+                            </FadeIn>
+                            <FadeIn delay={0.6}>
+                                <div className="p-8 rounded-2xl border border-border/50 bg-card hover:shadow-lg transition-shadow h-full">
+                                    <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center mb-6 text-red-500">
+                                        <Shield className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="text-xl font-semibold mb-3">Secure Submissions</h3>
+                                    <p className="text-muted-foreground">All form submissions are secured with server-side sanitation, CSRF checks, and rate limit protections.</p>
+                                </div>
+                            </FadeIn>
                         </div>
                     </div>
                 </section>
@@ -272,6 +270,93 @@ export default function LandingPage() {
                         </div>
                     </div>
                 </section>
+
+                {/* PRICING SECTION */}
+                <section id="pricing" className="py-24 px-6 bg-background">
+                    <div className="max-w-6xl mx-auto">
+                        <FadeIn className="text-center mb-16">
+                            <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">Simple, Transparent Pricing</h2>
+                            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                                Start for free and scale as your response volume grows. No setup fees or hidden surprises.
+                            </p>
+                        </FadeIn>
+
+                        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                            {/* Free Tier */}
+                            <FadeIn delay={0.1}>
+                                <div className="p-8 rounded-3xl border border-border bg-card hover:border-primary/30 transition-all flex flex-col justify-between h-full shadow-sm relative">
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-foreground mb-2">Free Plan</h3>
+                                        <p className="text-muted-foreground text-sm mb-6">Perfect for creators getting started with forms.</p>
+                                        <div className="flex items-baseline mb-6">
+                                            <span className="text-5xl font-extrabold text-foreground">$0</span>
+                                            <span className="text-muted-foreground ml-2">/ month</span>
+                                        </div>
+                                        <ul className="space-y-4 border-t border-border/50 pt-6">
+                                            {[
+                                                "Unlimited active forms",
+                                                "Up to 100 submissions/month",
+                                                "Basic drag & drop editor",
+                                                "Standard templates library",
+                                                "CSV response exports"
+                                            ].map((feature, idx) => (
+                                                <li key={idx} className="flex items-center gap-3 text-sm text-muted-foreground">
+                                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                                                    {feature}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <div className="pt-8">
+                                        <Link to="/signup" className="w-full">
+                                            <Button variant="outline" className="w-full h-12 rounded-full font-semibold">
+                                                Start for Free
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </FadeIn>
+
+                            {/* Pro Tier */}
+                            <FadeIn delay={0.2}>
+                                <div className="p-8 rounded-3xl border-2 border-primary bg-card transition-all flex flex-col justify-between h-full shadow-lg relative">
+                                    <div className="absolute -top-4 right-8 bg-gradient-to-r from-primary to-indigo-600 text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
+                                        POPULAR
+                                    </div>
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-foreground mb-2">Pro Plan</h3>
+                                        <p className="text-muted-foreground text-sm mb-6">For professional creators, teams, and high-growth sites.</p>
+                                        <div className="flex items-baseline mb-6">
+                                            <span className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-500">$19</span>
+                                            <span className="text-muted-foreground ml-2">/ month</span>
+                                        </div>
+                                        <ul className="space-y-4 border-t border-border/50 pt-6">
+                                            {[
+                                                "Everything in Free Plan",
+                                                "Unlimited submissions",
+                                                "Custom domain support",
+                                                "Advanced logic & branching",
+                                                "Webhook & API integrations",
+                                                "Priority email & chat support"
+                                            ].map((feature, idx) => (
+                                                <li key={idx} className="flex items-center gap-3 text-sm text-muted-foreground">
+                                                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                                                    {feature}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <div className="pt-8">
+                                        <Link to="/signup" className="w-full">
+                                            <Button className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold shadow-md shadow-primary/20">
+                                                Go Pro Now
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </FadeIn>
+                        </div>
+                    </div>
 
                 {/* FINAL CTA */}
                 <section className="py-32 px-6">

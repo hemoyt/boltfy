@@ -105,23 +105,6 @@ npm run build
 ```
 This builds and compiles static assets into the `/dist` directory.
 
-### 🌐 Deploying to Hostinger (hPanel / FTP)
-
-1. **Build the project**: Run `npm run build` locally.
-2. **Access Hostinger hPanel**: Log in and open the **File Manager** for your domain.
-3. **Upload Files**: Copy the contents of the `dist/` directory (including `.htaccess`) and drop them directly inside the `public_html/` folder.
-4. **Setup redirect rules**: Ensure the `.htaccess` file is present in the root folder to handle React Router client-side routing:
-   ```apache
-   <IfModule mod_rewrite.c>
-     RewriteEngine On
-     RewriteBase /
-     RewriteRule ^index\.html$ - [L]
-     RewriteCond %{REQUEST_FILENAME} !-f
-     RewriteCond %{REQUEST_FILENAME} !-d
-     RewriteRule . /index.html [L]
-   </IfModule>
-   ```
-
 ### ☁️ Deploying to Vercel / Netlify
 
 1. Connect your GitHub repository to Vercel/Netlify.
