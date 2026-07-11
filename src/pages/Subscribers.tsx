@@ -25,7 +25,7 @@ interface Submission {
   id: string;
   created_at: string;
   form_name: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 export default function Subscribers() {
@@ -54,10 +54,10 @@ export default function Subscribers() {
 
       if (error) throw error;
       setSubmissions(data as unknown as Submission[]);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error fetching leads",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Please try again",
         variant: "destructive",
       });
     } finally {
@@ -65,14 +65,14 @@ export default function Subscribers() {
     }
   };
 
-  const getEmailFromMetadata = (metadata: Record<string, any>) => {
+  const getEmailFromMetadata = (metadata: Record<string, unknown>): string => {
     // First, look for common email field names
     const emailKey = Object.keys(metadata).find(key =>
       key.toLowerCase().includes("email") ||
       key.toLowerCase() === "mail" ||
       key.toLowerCase().includes("e-mail")
     );
-    if (emailKey && metadata[emailKey]) return metadata[emailKey];
+    if (emailKey && metadata[emailKey]) return String(metadata[emailKey]);
 
     // If not found by key name, look for values that look like emails
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

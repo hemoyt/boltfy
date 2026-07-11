@@ -8,11 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EmailTemplateEditor, EmailBlock } from "@/components/templates/EmailTemplateEditor";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Save } from "lucide-react";
 
 export default function TemplateEditor() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [templateName, setTemplateName] = useState("");
   const [subject, setSubject] = useState("");
   const [blocks, setBlocks] = useState<EmailBlock[]>([]);
@@ -28,6 +30,8 @@ export default function TemplateEditor() {
       return;
     }
 
+    if (!user) return;
+
     setIsSaving(true);
 
     try {
@@ -36,6 +40,7 @@ export default function TemplateEditor() {
         subject: subject || null,
         content: JSON.parse(JSON.stringify(blocks)),
         preview_text: blocks.find((b) => b.type === "text")?.content?.slice(0, 100) || null,
+        user_id: user.id,
       }]);
 
       if (error) throw error;

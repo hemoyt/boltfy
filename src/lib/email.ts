@@ -1,16 +1,10 @@
 /**
  * Email Service for Boltfy
- * Handles email sending functionality using various providers
+ * Actual sending happens in the send-email Supabase Edge Function, which
+ * holds the Resend API key server-side. Nothing here ever sees the key —
+ * a VITE_-prefixed secret would ship straight into the browser bundle.
  */
-
-export interface EmailOptions {
-    to: string | string[];
-    subject: string;
-    html?: string;
-    text?: string;
-    from?: string;
-    replyTo?: string;
-}
+import { supabase } from "@/integrations/supabase/client";
 
 export interface EmailResult {
     success: boolean;
@@ -182,120 +176,23 @@ export const emailTemplates = {
   `, subject),
 };
 
-// Email provider interface
-interface EmailProvider {
-    name: string;
-    send: (options: EmailOptions) => Promise<EmailResult>;
-}
-
-// Console provider (for development/testing)
-const consoleProvider: EmailProvider = {
-    name: 'console',
-    send: async (options: EmailOptions): Promise<EmailResult> => {
-        console.log('📧 Email would be sent:');
-        console.log('To:', options.to);
-        console.log('Subject:', options.subject);
-        console.log('---');
-        console.log(options.text || 'HTML email');
-        console.log('---');
-        return { success: true, messageId: `mock-${Date.now()}` };
-    },
-};
-
-// Resend provider (for production)
-// To use: npm install resend, then add VITE_RESEND_API_KEY to .env
-const resendProvider: EmailProvider = {
-    name: 'resend',
-    send: async (options: EmailOptions): Promise<EmailResult> => {
-        const apiKey = import.meta.env.VITE_RESEND_API_KEY;
-        if (!apiKey) {
-            console.warn('Resend API key not configured, falling back to console');
-            return consoleProvider.send(options);
-        }
-
-        try {
-            const response = await fetch('https://api.resend.com/emails', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    from: options.from || 'Boltfy <noreply@boltfy.com>',
-                    to: Array.isArray(options.to) ? options.to : [options.to],
-                    subject: options.subject,
-                    html: options.html,
-                    text: options.text,
-                    reply_to: options.replyTo,
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                return { success: false, error: data.message || 'Failed to send email' };
-            }
-
-            return { success: true, messageId: data.id };
-        } catch (error) {
-            return { success: false, error: String(error) };
-        }
-    },
-};
-
-// Email service class
 class EmailService {
-    private provider: EmailProvider;
-
-    constructor() {
-        // Use Resend if API key is available, otherwise use console
-        const hasResendKey = !!import.meta.env.VITE_RESEND_API_KEY;
-        this.provider = hasResendKey ? resendProvider : consoleProvider;
-        console.log(`📧 Email service initialized with ${this.provider.name} provider`);
-    }
-
-    async send(options: EmailOptions): Promise<EmailResult> {
-        return this.provider.send(options);
-    }
-
-    async sendWelcome(email: string, name: string, dashboardUrl: string): Promise<EmailResult> {
-        const html = emailTemplates.welcome(name)
-            .replace('{{dashboardUrl}}', dashboardUrl)
-            .replace('{{logoUrl}}', `${dashboardUrl}/icon.png`);
-
-        return this.send({
-            to: email,
-            subject: `Welcome to Boltfy, ${name}! 🎉`,
-            html,
-        });
-    }
-
-    async sendPasswordReset(email: string, resetLink: string): Promise<EmailResult> {
-        const html = emailTemplates.passwordReset(resetLink)
-            .replace('{{logoUrl}}', `${window.location.origin}/icon.png`);
-
-        return this.send({
-            to: email,
-            subject: 'Reset your Boltfy password',
-            html,
-        });
-    }
-
     async sendFormNotification(
-        email: string,
+        formId: string,
         formName: string,
-        data: Record<string, string>,
-        dashboardUrl: string
+        data: Record<string, string>
     ): Promise<EmailResult> {
-        const html = emailTemplates.formSubmission(formName, data)
-            .replace('{{dashboardUrl}}', dashboardUrl)
-            .replace('{{logoUrl}}', `${dashboardUrl}/icon.png`);
-
-        return this.send({
-            to: email,
-            subject: `New submission: ${formName}`,
-            html,
+        const { data: result, error } = await supabase.functions.invoke('send-email', {
+            body: {
+                action: 'form-notification',
+                formId,
+                formName,
+                submissionData: data,
+            },
         });
+
+        if (error) return { success: false, error: error.message };
+        return result as EmailResult;
     }
 
     async sendCampaign(
@@ -307,16 +204,15 @@ class EmailService {
         const results: EmailResult[] = [];
 
         for (const email of emails) {
-            const unsubscribeLink = `${unsubscribeBaseUrl}?email=${encodeURIComponent(email)}`;
+            const unsubscribeLink = `${unsubscribeBaseUrl}&email=${encodeURIComponent(email)}`;
             const html = emailTemplates.campaign(subject, content, unsubscribeLink)
                 .replace('{{logoUrl}}', `${window.location.origin}/icon.png`);
 
-            const result = await this.send({
-                to: email,
-                subject,
-                html,
+            const { data: result, error } = await supabase.functions.invoke('send-email', {
+                body: { action: 'campaign', to: email, subject, html },
             });
-            results.push(result);
+
+            results.push(error ? { success: false, error: error.message } : (result as EmailResult));
 
             // Small delay to avoid rate limiting
             await new Promise(resolve => setTimeout(resolve, 100));

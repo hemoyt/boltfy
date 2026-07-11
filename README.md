@@ -35,6 +35,10 @@ form-flow-main/
 │   ├── pages/            # Application screens (routed in App.tsx)
 │   ├── App.tsx           # Router layout and global context providers
 │   └── main.tsx          # Application entrypoint
+├── supabase/
+│   ├── migrations/       # Ordered SQL: schema, RLS policies, RPCs
+│   └── functions/
+│       └── send-email/   # Edge Function — holds the Resend key server-side
 ├── index.html            # Core HTML template with SEO configurations
 ├── tailwind.config.ts    # Design tokens, colors, transitions
 └── vite.config.ts        # Bundler configuration
@@ -52,24 +56,47 @@ VITE_SUPABASE_PROJECT_ID="your-project-id"
 VITE_SUPABASE_PUBLISHABLE_KEY="your-publishable-key"
 VITE_SUPABASE_URL="https://your-project-id.supabase.co"
 
-# Email Sending Service (Resend API)
-VITE_RESEND_API_KEY="your-resend-api-key"
-
 # App URL Configuration
 VITE_APP_URL="http://localhost:8081" # Or your production domain
 ```
+
+Email is sent from a Supabase Edge Function, not the browser, so the Resend
+key is a **server-side secret** rather than a `VITE_` var — see
+[Email Sending](#-email-sending) below.
 
 ---
 
 ## 🗄️ Database Setup (Supabase)
 
-To support the features in Boltfy, ensure the following tables exist in your Supabase database:
+All schema, RLS policies, and functions live in `supabase/migrations/` as
+ordered SQL files — there is no separate manual setup script to run. Apply
+them with the Supabase CLI:
 
-1. **`custom_forms`**: Holds the schema and configuration for user-created forms.
-2. **`form_submissions`**: Stores responses/inputs gathered from forms.
-3. **`subscribers`**: Contact details for respondents who opt in.
-4. **`campaigns`**: Records email newsletters/broadcast metadata and status.
-5. **`email_templates`**: Saves drag-and-drop block schemas for email layout templates.
+```bash
+supabase link --project-ref your-project-id
+supabase db push
+```
+
+This creates the multi-tenant tables (`custom_forms`, `form_submissions`,
+`subscribers`, `campaigns`, `email_templates`, `audit_logs`) with row-level
+security scoped per-user, plus two RPCs (`submit_public_form`,
+`unsubscribe_email`) that let anonymous visitors submit forms and unsubscribe
+without ever being trusted with another user's data.
+
+### 📧 Email Sending
+
+Campaign emails and form-submission notifications are sent by the
+`send-email` Edge Function in `supabase/functions/send-email/`. Deploy it and
+set the Resend key as a secret (never as a `VITE_` variable — that would ship
+the key into the browser bundle):
+
+```bash
+supabase functions deploy send-email
+supabase secrets set RESEND_API_KEY=your-resend-api-key
+```
+
+Without a configured key, the function logs the email instead of sending it —
+useful for local development.
 
 ---
 
@@ -114,9 +141,24 @@ This builds and compiles static assets into the `/dist` directory.
 
 ---
 
+## ✅ Testing & CI
+
+There's no automated test suite yet (see `IMPROVEMENTS.md`), but every push
+and PR runs through `.github/workflows/ci.yml`:
+
+```bash
+npm run lint
+npx tsc --noEmit -p tsconfig.app.json
+npm run build
+```
+
+Run the same three commands locally before opening a PR.
+
+---
+
 ## 🤝 Contribution Guidelines
 1. Fork the repository.
 2. Create a new branch: `git checkout -b feature/awesome-feature`.
-3. Make changes and run type checks: `npx tsc --noEmit`.
+3. Make changes and run `npm run lint && npx tsc --noEmit -p tsconfig.app.json`.
 4. Commit and push: `git push origin feature/awesome-feature`.
 5. Open a Pull Request.

@@ -18,6 +18,7 @@ import Forms from "./pages/Forms";
 import FormEditor from "./pages/FormEditor";
 import Settings from "./pages/Settings";
 import PublicForm from "./pages/PublicForm";
+import Unsubscribe from "./pages/Unsubscribe";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Subscribers from "./pages/Subscribers";
@@ -65,6 +66,7 @@ function AppRoutes() {
 
       {/* Public Form - Shareable Link */}
       <Route path="/f/:slug" element={<PublicForm />} />
+      <Route path="/unsubscribe" element={<Unsubscribe />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/contact" element={<Contact />} />
