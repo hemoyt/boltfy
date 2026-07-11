@@ -175,7 +175,7 @@ export function FormPreview({ name, description, fields, style, onSubmit, isSubm
               className={`transition-all ${hasError ? "border-red-500 ring-2 ring-red-200" : "focus:ring-2"} ${onSelectField ? "cursor-pointer pointer-events-none" : ""}`}
               style={{
                 ...inputStyle,
-                ...(hasError ? {} : { "--tw-ring-color": `${currentStyle.primaryColor}40` } as any),
+                ...(hasError ? {} : { "--tw-ring-color": `${currentStyle.primaryColor}40` } as React.CSSProperties),
               }}
               rows={4}
             />
@@ -239,7 +239,7 @@ export function FormPreview({ name, description, fields, style, onSubmit, isSubm
               className={`transition-all h-12 ${hasError ? "border-red-500 ring-2 ring-red-200" : "focus:ring-2"} ${onSelectField ? "cursor-pointer pointer-events-none" : ""}`}
               style={{
                 ...inputStyle,
-                ...(hasError ? {} : { "--tw-ring-color": `${currentStyle.primaryColor}40` } as any),
+                ...(hasError ? {} : { "--tw-ring-color": `${currentStyle.primaryColor}40` } as React.CSSProperties),
               }}
             />
           </div>

@@ -239,15 +239,17 @@ export function generateNonce(): string {
 
 // Detect suspicious activity
 export function detectSuspiciousActivity(): boolean {
+    const win = window as unknown as Record<string, unknown>;
+
     // Check for automation indicators
     const suspicious = [
         // Selenium
-        (window as any).webdriver,
-        (window as any).__webdriver_evaluate,
-        (window as any).__selenium_evaluate,
+        win.webdriver,
+        win.__webdriver_evaluate,
+        win.__selenium_evaluate,
         // PhantomJS
-        (window as any)._phantom,
-        (window as any).__nightmare,
+        win._phantom,
+        win.__nightmare,
         // Check for automation properties
         navigator.webdriver,
     ];

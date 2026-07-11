@@ -130,8 +130,8 @@ export default function FormEditor() {
         if (error) throw error;
         toast({ title: "Form Saved", description: "Changes saved successfully" });
       }
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to save form", variant: "destructive" });
+    } catch (error) {
+      toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to save form", variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -153,8 +153,8 @@ export default function FormEditor() {
 
       if (error) throw error;
       toast({ title: "Test Submitted", description: "Submission recorded successfully" });
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } catch (error) {
+      toast({ title: "Error", description: error instanceof Error ? error.message : "Please try again", variant: "destructive" });
     }
   };
 

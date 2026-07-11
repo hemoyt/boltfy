@@ -257,12 +257,20 @@ export function FormBuilder({
   const currentActiveFieldId = activeFieldId !== undefined ? activeFieldId : localActiveFieldId;
 
   const handleTabChange = (val: string) => {
-    onActiveTabChange ? onActiveTabChange(val) : setLocalActiveTab(val);
+    if (onActiveTabChange) {
+      onActiveTabChange(val);
+    } else {
+      setLocalActiveTab(val);
+    }
   };
 
   const handleFieldExpand = (id: string) => {
     const newId = currentActiveFieldId === id ? null : id;
-    onActiveFieldChange ? onActiveFieldChange(newId) : setLocalActiveFieldId(newId);
+    if (onActiveFieldChange) {
+      onActiveFieldChange(newId);
+    } else {
+      setLocalActiveFieldId(newId);
+    }
   };
 
   const sensors = useSensors(

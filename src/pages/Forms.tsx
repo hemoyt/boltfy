@@ -82,16 +82,19 @@ export default function Forms() {
   }, [user, toast]);
 
   const fetchData = async () => {
+    if (!user) return;
     setLoading(true);
 
     const { data: formsData } = await supabase
       .from("custom_forms")
       .select("*")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     const { data: subsData } = await supabase
       .from("form_submissions")
       .select("*")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(100);
 

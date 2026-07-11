@@ -92,12 +92,15 @@ export default function PublicForm() {
     const [submitted, setSubmitted] = useState(false);
     const [formData, setFormData] = useState<Record<string, string | boolean>>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
-    const [ownerEmail, setOwnerEmail] = useState<string | null>(null);
+    const [honeypot, setHoneypot] = useState("");
     const [isEmbed, setIsEmbed] = useState(() => {
         const params = new URLSearchParams(window.location.search);
         return params.get("embed") === "true";
     });
     const formRef = useRef<HTMLDivElement>(null);
+    // Timestamp the form actually became visible, so a submission that
+    // arrives implausibly fast can be treated as automated.
+    const shownAtRef = useRef<number | null>(null);
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
@@ -165,12 +168,7 @@ export default function PublicForm() {
                 initialData[field.id] = field.type === "checkbox" ? false : "";
             });
             setFormData(initialData);
-
-            // Get notification email from form settings
-            const settings = data.settings as { style?: Partial<FormStyle>; notification_email?: string } | null;
-            if (settings?.notification_email) {
-                setOwnerEmail(settings.notification_email);
-            }
+            shownAtRef.current = Date.now();
         }
 
         setLoading(false);
@@ -208,6 +206,17 @@ export default function PublicForm() {
         e.preventDefault();
 
         if (!form) return;
+
+        // Bot heuristics: a filled honeypot or an implausibly fast submit
+        // (a human can't read the form and type into it in under a second)
+        // are treated as spam. Pretend to succeed so bots don't learn why
+        // they were blocked.
+        const submittedTooFast = shownAtRef.current !== null && Date.now() - shownAtRef.current < 1500;
+        if (honeypot || submittedTooFast) {
+            setSubmitted(true);
+            return;
+        }
+
         if (!validateForm()) {
             toast({
                 title: "Please fix the errors",
@@ -223,22 +232,11 @@ export default function PublicForm() {
             const style = getFormStyle();
             const fields = Array.isArray(form.fields) ? form.fields as unknown as FormField[] : [];
 
-            // Save submission to database
-            const { error: submissionError } = await supabase.from("form_submissions").insert([{
-                form_id: form.id,
-                form_name: form.name,
-                metadata: formData as unknown as Json,
-                user_id: form.user_id,
-            }]);
+            // Find email and name fields (used when this is a subscriber form)
+            let email = "";
+            let name = "";
 
-            if (submissionError) throw submissionError;
-
-            // If it's a subscriber form, also save to subscribers
             if (style.isSubscriberForm) {
-                // Find email and name fields
-                let email = "";
-                let name = "";
-
                 fields.forEach((field) => {
                     const value = String(formData[field.id] || "");
                     if (field.type === "email" && value) {
@@ -248,57 +246,38 @@ export default function PublicForm() {
                         name = value;
                     }
                 });
-
-                if (email) {
-                    // Check if subscriber already exists
-                    const { data: existing } = await supabase
-                        .from("subscribers")
-                        .select("id")
-                        .eq("email", email)
-                        .eq("user_id", form.user_id)
-                        .maybeSingle();
-
-                    if (!existing) {
-                        // Add new subscriber
-                        const { error: subscriberError } = await supabase.from("subscribers").insert([{
-                            email,
-                            name: name || email.split("@")[0],
-                            status: "active",
-                            user_id: form.user_id,
-                            source: `Form: ${form.name}`,
-                        }]);
-
-                        if (subscriberError) {
-                            console.error("Failed to add subscriber:", subscriberError);
-                        }
-                    }
-                }
             }
 
-            // Send email notification to form owner
-            if (ownerEmail) {
-                try {
-                    // Format the submission data with field labels
-                    const formattedData: Record<string, string> = {};
-                    fields.forEach((field) => {
-                        const value = formData[field.id];
-                        if (value !== undefined && value !== "" && value !== false) {
-                            formattedData[field.label] = String(value);
-                        }
-                    });
+            // Submission (and optional subscriber signup) is handled server-side
+            // via a SECURITY DEFINER RPC: the owner is resolved from form_id there,
+            // rather than trusting a client-supplied user_id.
+            const { error: submissionError } = await supabase.rpc("submit_public_form", {
+                p_form_id: form.id,
+                p_metadata: formData as unknown as Json,
+                p_add_subscriber: style.isSubscriberForm && !!email,
+                p_subscriber_email: email || null,
+                p_subscriber_name: name || null,
+            });
 
-                    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
-                    await emailService.sendFormNotification(
-                        ownerEmail,
-                        form.name,
-                        formattedData,
-                        appUrl
-                    );
-                    console.log("📧 Email notification sent to form owner");
-                } catch (emailError) {
-                    console.error("Failed to send email notification:", emailError);
-                    // Don't fail the submission if email fails
-                }
+            if (submissionError) throw submissionError;
+
+            // Notify the form owner. The edge function resolves the actual
+            // recipient from form_id server-side (a no-op if the owner
+            // hasn't configured a notification_email), so this is safe to
+            // fire unconditionally.
+            try {
+                const formattedData: Record<string, string> = {};
+                fields.forEach((field) => {
+                    const value = formData[field.id];
+                    if (value !== undefined && value !== "" && value !== false) {
+                        formattedData[field.label] = String(value);
+                    }
+                });
+
+                await emailService.sendFormNotification(form.id, form.name, formattedData);
+            } catch (emailError) {
+                console.error("Failed to send email notification:", emailError);
+                // Don't fail the submission if email fails
             }
 
             setSubmitted(true);
@@ -308,10 +287,10 @@ export default function PublicForm() {
                     ? "You've been added to our list!"
                     : "Your response has been submitted.",
             });
-        } catch (error: any) {
+        } catch (error) {
             toast({
                 title: "Something went wrong",
-                description: error.message || "Please try again",
+                description: error instanceof Error ? error.message : "Please try again",
                 variant: "destructive",
             });
         } finally {
@@ -619,6 +598,21 @@ export default function PublicForm() {
                         className="flex flex-col"
                         style={{ gap: `${style.spacing}px` }}
                     >
+                        {/* Honeypot: hidden from sighted users and screen readers,
+                            but visible to simple bots that auto-fill every field. */}
+                        <div className="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
+                            <label htmlFor="website">Website</label>
+                            <input
+                                type="text"
+                                id="website"
+                                name="website"
+                                tabIndex={-1}
+                                autoComplete="off"
+                                value={honeypot}
+                                onChange={(e) => setHoneypot(e.target.value)}
+                            />
+                        </div>
+
                         {fields.map((field) => (
                             <div key={field.id} className="space-y-2">
                                 {field.type !== "checkbox" && (

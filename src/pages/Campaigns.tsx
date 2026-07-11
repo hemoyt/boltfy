@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { emailService } from "@/lib/email";
 import { Send, FileText, Clock, CheckCircle, Mail, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -25,6 +27,7 @@ interface Campaign {
 
 interface Subscriber {
   id: string;
+  email: string;
   status: string;
 }
 
@@ -36,6 +39,7 @@ const statusConfig: Record<string, { icon: typeof FileText; color: string }> = {
 
 export default function Campaigns() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,14 +48,15 @@ export default function Campaigns() {
   const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (user) fetchData();
+  }, [user]);
 
   const fetchData = async () => {
+    if (!user) return;
     try {
       const [campaignsRes, subscribersRes] = await Promise.all([
-        supabase.from("campaigns").select("*").order("created_at", { ascending: false }),
-        supabase.from("subscribers").select("id, status"),
+        supabase.from("campaigns").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("subscribers").select("id, email, status").eq("user_id", user.id),
       ]);
 
       if (campaignsRes.error) throw campaignsRes.error;
@@ -83,22 +88,44 @@ export default function Campaigns() {
       return;
     }
 
+    if (!user) return;
+
+    if (activeSubscribers.length === 0) {
+      toast({
+        title: "No active subscribers",
+        description: "Add subscribers before sending a campaign.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSending(true);
 
     try {
+      const unsubscribeBaseUrl = `${import.meta.env.VITE_APP_URL || window.location.origin}/unsubscribe`;
+      const results = await emailService.sendCampaign(
+        activeSubscribers.map((s) => s.email),
+        subject,
+        content,
+        `${unsubscribeBaseUrl}?owner=${user.id}`
+      );
+      const successCount = results.filter((r) => r.success).length;
+
       const { error } = await supabase.from("campaigns").insert([{
         subject,
         content,
         status: "sent",
-        recipients_count: activeSubscribers.length,
+        recipients_count: successCount,
         sent_at: new Date().toISOString(),
+        user_id: user.id,
       }]);
 
       if (error) throw error;
 
       toast({
-        title: "Campaign sent!",
-        description: `Your email was sent to ${activeSubscribers.length} subscribers.`,
+        title: successCount > 0 ? "Campaign sent!" : "Campaign could not be delivered",
+        description: `Delivered to ${successCount} of ${activeSubscribers.length} subscribers.`,
+        variant: successCount > 0 ? "default" : "destructive",
       });
 
       setSubject("");
@@ -126,11 +153,14 @@ export default function Campaigns() {
       return;
     }
 
+    if (!user) return;
+
     try {
       const { error } = await supabase.from("campaigns").insert([{
         subject,
         content,
         status: "draft",
+        user_id: user.id,
       }]);
 
       if (error) throw error;

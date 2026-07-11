@@ -1,49 +1,63 @@
-# 🚀 Form Flow - Improvement Roadmap
+# 🚀 Boltfy - Improvement Roadmap
 
 ## ✅ Current Features
-- Dashboard with analytics
-- Subscriber management (CRUD)
+- Dashboard with analytics (live, per-user data — no mock/hardcoded numbers)
+- Subscriber management (CRUD), scoped per-user via RLS
 - Custom form builder with drag-and-drop
-- Conditional form logic
+- Public form embedding (`/f/:slug`, iframe embed mode via `?embed=true`)
 - Email templates
-- Campaigns management
+- Campaigns management, with real delivery via Resend (server-side)
 - Settings page
+- Authentication (signup/login/Google OAuth/password reset), protected routes,
+  per-user row-level security on every table
+- Unsubscribe flow for campaign recipients
+
+## ✅ Recently Fixed (Security & Correctness Hardening)
+These were the platform's most serious gaps and are now resolved:
+- [x] **Data isolation**: every table now has owner-scoped RLS
+      (`supabase/migrations/20260711000000_secure_multitenant_rls.sql`).
+      Previously all tables used `USING (true)` policies — any client with
+      the public anon key could read/edit/delete *any* user's data.
+- [x] **Email key exposure**: Resend was called directly from the browser
+      with a `VITE_`-prefixed key, which ships into the client bundle.
+      Sending now goes through the `send-email` Supabase Edge Function,
+      where the key lives server-side only.
+- [x] **Public form submission spoofing**: the client used to set
+      `user_id` on submissions/subscribers itself — a malicious client could
+      attribute data to any user. Public writes now go through a
+      `SECURITY DEFINER` RPC (`submit_public_form`) that resolves the real
+      owner server-side.
+- [x] **Open-relay risk**: the form-notification email path resolves its
+      recipient server-side from `form_id`, so the edge function can't be
+      used to blast arbitrary addresses.
+- [x] **Campaign sending was fully mocked** — "Send Campaign" just wrote a
+      `status: 'sent'` row without emailing anyone, and there was no
+      `/unsubscribe` route despite emails linking to one. Both now work.
+- [x] Cross-tenant data leak in the Forms list (unscoped `custom_forms`
+      query returned every user's forms, since that table is intentionally
+      public-readable for the embed page).
+- [x] `types.ts` was saved as UTF-16LE, which is not valid TS/JS source
+      encoding — re-saved as UTF-8.
+- [x] Anti-spam honeypot + submit-timing check on public forms.
+- [x] `jspdf` upgraded off a version with critical CVEs (PDF export renders
+      subscriber-submitted, i.e. untrusted, data).
+- [x] CI (lint + typecheck + build) on every push/PR.
 
 ---
 
-## 🎯 HIGH PRIORITY IMPROVEMENTS
+## 🎯 HIGH PRIORITY IMPROVEMENTS (still open)
 
-### 1. 🔐 Authentication System
-**Why**: Currently anyone can access and modify data
+### 1. 📊 Analytics depth
 **What to add**:
-- [ ] User registration & login
-- [ ] Password reset
-- [ ] Protected routes
-- [ ] User-specific data isolation (RLS)
-
-### 2. 📧 Email Sending Integration
-**Why**: Currently can't actually send emails
-**Options**:
-- [ ] SendGrid integration
-- [ ] Mailgun integration
-- [ ] Resend integration
-- [ ] Amazon SES
-
-### 3. 📊 Real Analytics
-**Why**: Dashboard shows hardcoded/mock data
-**What to add**:
-- [ ] Real-time subscriber growth charts
-- [ ] Campaign open/click tracking
-- [ ] Form submission analytics
+- [ ] Campaign open/click tracking (requires a tracking pixel / link rewriting)
 - [ ] Export reports to CSV/PDF
 
-### 4. 🔗 Public Form Embedding
-**Why**: Forms can't be embedded on external websites
+### 2. ⚡ Bundle size
+**Why**: main JS chunk is ~1.5MB minified; `npm run build` warns about it
 **What to add**:
-- [ ] Generate embed code (iframe)
-- [ ] Direct link to standalone form page
-- [ ] React widget for embedding
-- [ ] Form submission API endpoint
+- [ ] Route-level code splitting (`React.lazy`) for heavy pages
+      (TemplateEditor, FormEditor pull in `three`/`@react-three/*`)
+- [ ] `manualChunks` for vendor splitting
 
 ---
 
@@ -111,10 +125,10 @@
 - [ ] Landing page variants
 
 ### 13. 🔒 Security Enhancements
-- [ ] CAPTCHA on forms
-- [ ] Rate limiting
-- [ ] Spam filtering
-- [ ] GDPR compliance tools
+- [x] Rate limiting on form submissions (honeypot + submit-timing heuristic;
+      see `src/pages/PublicForm.tsx`)
+- [ ] CAPTCHA on forms (for more sophisticated bots than the honeypot catches)
+- [ ] GDPR data-export/deletion self-service tools
 
 ---
 
@@ -135,8 +149,8 @@
 ### 16. Developer Experience
 - [ ] Environment setup script
 - [ ] Docker support
-- [ ] CI/CD pipeline
-- [ ] Documentation
+- [x] CI pipeline (`.github/workflows/ci.yml`: lint, typecheck, build)
+- [ ] Expanded documentation (architecture deep-dive, RLS model)
 
 ---
 
@@ -145,8 +159,8 @@
 1. **Add loading skeletons** - Better UX while loading
 2. **Add empty states** - Guide users when no data
 3. **Add keyboard shortcuts** - Power user features
-4. **Add dark/light mode toggle** - Currently only dark
-5. **Add export buttons** - Download subscribers as CSV
+4. ~~Add dark/light mode toggle~~ — done (`src/components/theme-provider.tsx` + `mode-toggle.tsx`, system/light/dark)
+5. ~~Add export buttons~~ — done (Subscribers page: CSV + PDF export)
 6. **Add confirmation dialogs** - Before delete actions
 7. **Add form validation feedback** - Real-time validation
 8. **Add success animations** - Celebrate actions
@@ -185,15 +199,17 @@ src/
 
 ---
 
-## 🚦 Implementation Priority
+## 🚦 Implementation Priority (remaining work)
 
 | Priority | Feature | Effort | Impact |
 |----------|---------|--------|--------|
-| 1 | Authentication | High | Critical |
-| 2 | Public form pages | Medium | High |
-| 3 | Email sending | Medium | High |
-| 4 | Real analytics | Medium | Medium |
-| 5 | Mobile responsive | Low | Medium |
-| 6 | Export features | Low | Medium |
-| 7 | Tags/Segments | Medium | Medium |
-| 8 | Automation | High | High |
+| 1 | Mobile responsive layout | Low | Medium |
+| 2 | Bundle size / code splitting | Low | Medium |
+| 3 | Tags/Segments | Medium | Medium |
+| 4 | CAPTCHA on public forms | Low | Medium |
+| 5 | Automation workflows | High | High |
+| 6 | Unit/E2E test coverage | Medium | High |
+
+~~Authentication~~, ~~public form pages~~, ~~email sending~~, ~~real
+analytics~~, and ~~CSV/PDF export~~ (already in Subscribers) are done — see
+"Current Features" and "Recently Fixed" above.
